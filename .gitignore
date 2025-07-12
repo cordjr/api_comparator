@@ -1,0 +1,18 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# State-specific configuration files (confidential)
+confs/
+
+/uv.lock
+/.python-version
+/.idea/test_scripts.iml
+/.idea/vcs.xml

@@ -1,0 +1,88 @@
+config:
+  base_url: "https://jsonplaceholder.typicode.com"
+  base_url_comparison: "https://httpbin.org"
+  headers:
+    Content-Type: "application/json"
+    User-Agent: "Generic API Validator"
+  variables:
+    user_id: "1"
+
+# Testes tradicionais (opcional)
+tests:
+  - name: "Teste simples de usuário"
+    enabled: true
+    description: "Busca informações de um usuário"
+    request:
+      method: GET
+      path: "/users/{{user_id}}"
+    expected:
+      status_code: 200
+      body:
+        contains: ["name", "email"]
+
+# Nova seção de comparações entre endpoints
+comparisons:
+  - name: "Comparação entre usuários 1 e 2"
+    enabled: true
+    endpoints:
+      - name: "Usuário 1"
+        request:
+          method: GET
+          path: "/users/1"
+      - name: "Usuário 2"  
+        request:
+          method: GET
+          path: "/users/2"
+    validation:
+      compare_status: true
+      compare_body: true
+      ignore_fields: ["root['id']", "root['name']", "root['username']", "root['email']"]
+
+  - name: "Comparação estrutural entre posts"
+    enabled: true
+    endpoints:
+      - name: "Post 1"
+        request:
+          method: GET
+          path: "/posts/1"
+      - name: "Post 2"
+        request:
+          method: GET  
+          path: "/posts/2"
+    validation:
+      compare_status: true
+      compare_body: true
+      ignore_fields: ["root['id']", "root['title']", "root['body']", "root['userId']"]
+
+  - name: "Comparação que deve falhar - endpoints diferentes"
+    enabled: true
+    endpoints:
+      - name: "Post"
+        request:
+          method: GET
+          path: "/posts/1"
+      - name: "Usuário"
+        request:
+          method: GET
+          path: "/users/1"
+    validation:
+      compare_status: true
+      compare_body: true
+
+  # Nova sintaxe simplificada: usa automaticamente base_url e base_url_comparison
+  - name: "Comparação entre hosts diferentes - mesmo endpoint"
+    enabled: true
+    request:
+      method: GET
+      path: "/get"
+    validation:
+      compare_status: true
+      compare_body: false  # Esperamos que sejam diferentes
+
+report:
+  output_file: "api_comparator_results.json"
+  comparison_report: "api_comparator_report.html"
+  save_results: true
+  verbose: true
+  show_response_in_console: false
+  format_json_response: true
