@@ -1,16 +1,16 @@
-import yaml
-import json
-import uuid
-import sys
-import re
-import requests
-from datetime import datetime
-from typing import Dict, Any, List, Optional, Union
-from pathlib import Path
-from urllib.parse import urljoin
-from deepdiff import DeepDiff
 import html
+import json
+import os
+import sys
+import uuid
+import webbrowser
+from datetime import datetime
+from typing import Dict, Any, List, Union
+from urllib.parse import urljoin
 
+import requests
+import yaml
+from deepdiff import DeepDiff
 from deepdiff.helper import SetOrdered
 
 
@@ -86,12 +86,15 @@ class APIComparator:
         self.base_url_comparison = config.get('base_url_comparison', None)
         self.timeout = config.get('timeout', 30)
     
-    def _replace_variables(self, text: Union[str, Dict, List]) -> Union[str, Dict, List]:
+    def _replace_variables(self, text: Union[str, Dict, List], local_uuid = None) -> Union[str, Dict, List]:
         """Substitui variáveis no formato {{variavel}} pelos valores"""
         if isinstance(text, str):
             # Substituir {{uuid}} por um novo UUID
             if '{{uuid}}' in text:
-                text = text.replace('{{uuid}}', str(uuid.uuid4()))
+                if not local_uuid:
+                    text = text.replace('{{uuid}}', str(uuid.uuid4()))
+                else:
+                    text = text.replace('{{uuid}}', local_uuid)
             
             # Substituir outras variáveis
             for key, value in self.variables.items():
@@ -102,10 +105,10 @@ class APIComparator:
             return text
         
         elif isinstance(text, dict):
-            return {k: self._replace_variables(v) for k, v in text.items()}
+            return {k: self._replace_variables(v, local_uuid) for k, v in text.items()}
         
         elif isinstance(text, list):
-            return [self._replace_variables(item) for item in text]
+            return [self._replace_variables(item, local_uuid) for item in text]
         
         return text
     
@@ -188,6 +191,7 @@ class APIComparator:
     def _execute_request(self, test_config: Dict[str, Any]) -> requests.Response:
         """Executa a requisição HTTP"""
         request_config = test_config['request']
+        local_uuid =  test_config['local_uuid'] if 'local_uuid' in test_config else None
         
         # Preparar componentes da requisição
         method = request_config['method'].upper()
@@ -198,7 +202,7 @@ class APIComparator:
         else:
             path = request_config.get('path', '/')
 
-        path_params = self._replace_variables(request_config.get('path_params', {}))
+        path_params = self._replace_variables(request_config.get('path_params', {}), local_uuid)
         
         # Construir URL
         url = self._build_url(path, path_params)
@@ -206,17 +210,17 @@ class APIComparator:
         # Headers específicos do teste
         headers = self.session.headers.copy()
         if 'headers' in request_config:
-            test_headers = self._replace_variables(request_config['headers'])
+            test_headers = self._replace_variables(request_config['headers'], local_uuid)
             headers.update(test_headers)
         
         # Query parameters
-        params = self._replace_variables(request_config.get('params', {}))
+        params = self._replace_variables(request_config.get('params', {}), local_uuid)
         
         # Body da requisição
         json_body = None
         data = None
         if 'body' in request_config:
-            body = self._replace_variables(request_config['body'])
+            body = self._replace_variables(request_config['body'], local_uuid)
             if headers.get('Content-Type', '').lower() == 'application/json':
                 json_body = body
             else:
@@ -310,17 +314,18 @@ class APIComparator:
         
         try:
             # Se há apenas um request e duas base_urls configuradas, usar ambas
+            local_uuid : str = str(uuid.uuid4())
             if 'request' in comparison and self.base_url_comparison:
                 endpoints = [
                     {
                         'name': 'Host 1',
                         'request': comparison['request'],
-                        'base_url': self.base_url
+                        'base_url': self.base_url,
                     },
                     {
                         'name': 'Host 2', 
                         'request': comparison['request'],
-                        'base_url': self.base_url_comparison
+                        'base_url': self.base_url_comparison,
                     }
                 ]
             else:
@@ -338,7 +343,8 @@ class APIComparator:
                 # Preparar configuração do teste
                 test_config = {
                     'name': endpoint_name,
-                    'request': endpoint['request']
+                    'request': endpoint['request'],
+                    'local_uuid': local_uuid,
                 }
                 
                 # Usar base_url específica se fornecida
@@ -637,6 +643,8 @@ class APIComparator:
                 html_file = report_config.get('comparison_report', 'comparison_report.html')
                 try:
                     self._generate_html_comparison_report_simple(html_file)
+
+                    webbrowser.open(os.path.abspath(html_file))
                 except Exception as e:
                     print(f"Erro ao gerar HTML: {e}")
                 print(f"📄 Relatório HTML de comparações salvo em: {html_file}")
