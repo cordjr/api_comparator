@@ -390,8 +390,8 @@ class APIComparator:
                             response_data['request_details']['body'] = str(response.request.body)
                     
                     # Adicionar query params se existirem no endpoint
-                    if 'params' in endpoint['request']:
-                        response_data['request_details']['configured_params'] = self._replace_variables(endpoint['request']['params'])
+                    if 'query_params' in endpoint['request']:
+                        response_data['request_details']['configured_params'] = self._replace_variables(endpoint['request']['query_params'], local_uuid)
                     
                     # Tentar parsear JSON da resposta
                     try:
@@ -729,37 +729,52 @@ class APIComparator:
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comparação de Endpoints</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 20px;
+            margin: 0;
+            padding: 1rem;
             background-color: #f8f9fa;
+            line-height: 1.6;
+        }
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
         h1 {
             color: #2c3e50;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 1.5rem;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
         }
         h2 {
             color: #34495e;
             border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-            margin-top: 40px;
+            padding-bottom: 0.625rem;
+            margin-top: 2.5rem;
+            font-size: clamp(1.25rem, 3vw, 1.75rem);
         }
         h3 {
             margin-top: 0;
             font-weight: bold;
+            font-size: clamp(1rem, 2.5vw, 1.25rem);
         }
         .comparison-container {
             display: flex;
-            gap: 20px;
-            margin-bottom: 30px;
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
         }
         .endpoint-container {
             flex: 1;
+            min-width: 300px;
             border-radius: 8px;
-            padding: 15px;
+            padding: 1rem;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             background-color: white;
             border: 2px solid #e0e0e0;
@@ -777,15 +792,17 @@ class APIComparator:
         .status-5xx { background-color: #f8d7da; color: #721c24; }
         .payload {
             border-radius: 6px;
-            padding: 15px;
+            padding: 1rem;
             overflow: auto;
             max-height: 400px;
             font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 13px;
+            font-size: 0.8125rem;
             line-height: 1.6;
             white-space: pre;
             background-color: #f8f9fa;
             border: 1px solid #dee2e6;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
         .diff-line {
             margin: 0;
@@ -867,12 +884,121 @@ class APIComparator:
             color: #721c24;
             border: 2px solid #f5c6cb;
         }
+        
+        /* Request details box */
+        .request-details {
+            background-color: #f0f8ff;
+            border: 1px solid #cce7ff;
+            border-radius: 4px;
+            padding: 0.625rem;
+            margin-bottom: 0.625rem;
+            font-size: 0.75rem;
+            overflow-x: auto;
+        }
+        .request-details code {
+            background-color: #e9ecef;
+            padding: 0.125rem 0.25rem;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85em;
+            color: #495057;
+        }
+        
+        /* Responsive design */
+        @media screen and (max-width: 1024px) {
+            .comparison-container {
+                gap: 1rem;
+            }
+            .endpoint-container {
+                min-width: 280px;
+            }
+        }
+        
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 0.5rem;
+            }
+            h1 {
+                margin-bottom: 1rem;
+            }
+            h2 {
+                margin-top: 1.5rem;
+                font-size: 1.5rem;
+            }
+            h3 {
+                font-size: 1.125rem;
+            }
+            .comparison-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .endpoint-container {
+                min-width: unset;
+                width: 100%;
+            }
+            .payload {
+                max-height: 300px;
+                font-size: 0.75rem;
+                padding: 0.75rem;
+            }
+            .legend {
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                font-size: 0.75rem;
+            }
+            .result-banner {
+                font-size: 1rem;
+                padding: 0.75rem;
+            }
+            .request-details {
+                font-size: 0.6875rem;
+                padding: 0.5rem;
+            }
+        }
+        
+        @media screen and (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            h2 {
+                font-size: 1.25rem;
+            }
+            h3 {
+                font-size: 1rem;
+            }
+            .endpoint-container {
+                padding: 0.75rem;
+            }
+            .status-badge {
+                font-size: 0.75rem;
+                padding: 3px 8px;
+            }
+            .payload {
+                font-size: 0.6875rem;
+                padding: 0.5rem;
+            }
+        }
+        
+        /* Print styles */
+        @media print {
+            body {
+                background-color: white;
+            }
+            .comparison-container {
+                break-inside: avoid;
+            }
+            .endpoint-container {
+                box-shadow: none;
+                border: 1px solid #000;
+            }
+        }
     </style>
 </head>
-<body>''')
+<body>
+    <div class="main-container">''')
             
             f.write(f'<h1>🔍 Relatório de Comparação de Endpoints</h1>')
-            f.write(f'<p style="text-align: center; color: #666; margin-bottom: 40px;">Gerado em: {datetime.now().strftime("%d/%m/%Y às %H:%M:%S")}</p>')
+            f.write(f'<p style="text-align: center; color: #666; margin-bottom: 2.5rem;">Gerado em: {datetime.now().strftime("%d/%m/%Y às %H:%M:%S")}</p>')
             
             # Legenda
             f.write('''<div class="legend">
@@ -922,12 +1048,17 @@ class APIComparator:
                     # Detalhes do request
                     if 'request_details' in endpoint1:
                         req = endpoint1['request_details']
-                        f.write('<div style="background-color: #f0f8ff; border: 1px solid #cce7ff; border-radius: 4px; padding: 10px; margin-bottom: 10px; font-size: 12px;">')
+                        f.write('<div class="request-details">')
                         f.write(f'<strong>🔗 Base URL:</strong> {html.escape(req.get("base_url", "N/A"))}<br>')
                         f.write(f'<strong>📍 Request:</strong> {html.escape(req.get("method", ""))} {html.escape(req.get("path", ""))}<br>')
                         f.write(f'<strong>🌐 Full URL:</strong> {html.escape(req.get("full_url", ""))}<br>')
+                        
+                        # Exibir query parameters de forma mais legível
                         if req.get('configured_params'):
-                            f.write(f'<strong>🔍 Query Params:</strong> {html.escape(str(req["configured_params"]))}<br>')
+                            f.write('<strong>🔍 Query Parameters:</strong><br>')
+                            for param_name, param_value in req['configured_params'].items():
+                                f.write(f'&nbsp;&nbsp;&nbsp;&nbsp;• <code>{html.escape(param_name)}</code> = <code>{html.escape(str(param_value))}</code><br>')
+                        
                         if req.get('body'):
                             f.write(f'<strong>📦 Body:</strong> {html.escape(str(req["body"]))}<br>')
                         f.write('</div>')
@@ -945,12 +1076,17 @@ class APIComparator:
                     # Detalhes do request
                     if 'request_details' in endpoint2:
                         req = endpoint2['request_details']
-                        f.write('<div style="background-color: #f0f8ff; border: 1px solid #cce7ff; border-radius: 4px; padding: 10px; margin-bottom: 10px; font-size: 12px;">')
+                        f.write('<div class="request-details">')
                         f.write(f'<strong>🔗 Base URL:</strong> {html.escape(req.get("base_url", "N/A"))}<br>')
                         f.write(f'<strong>📍 Request:</strong> {html.escape(req.get("method", ""))} {html.escape(req.get("path", ""))}<br>')
                         f.write(f'<strong>🌐 Full URL:</strong> {html.escape(req.get("full_url", ""))}<br>')
+                        
+                        # Exibir query parameters de forma mais legível
                         if req.get('configured_params'):
-                            f.write(f'<strong>🔍 Query Params:</strong> {html.escape(str(req["configured_params"]))}<br>')
+                            f.write('<strong>🔍 Query Parameters:</strong><br>')
+                            for param_name, param_value in req['configured_params'].items():
+                                f.write(f'&nbsp;&nbsp;&nbsp;&nbsp;• <code>{html.escape(param_name)}</code> = <code>{html.escape(str(param_value))}</code><br>')
+                        
                         if req.get('body'):
                             f.write(f'<strong>📦 Body:</strong> {html.escape(str(req["body"]))}<br>')
                         f.write('</div>')
@@ -974,6 +1110,7 @@ class APIComparator:
                         f.write('</div></div>')
                     f.write('</div>')
             
+            f.write('</div>') # Close main-container
             f.write('</body></html>')
     
     def _format_json_content(self, body):
