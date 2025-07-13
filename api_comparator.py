@@ -214,7 +214,7 @@ class APIComparator:
             headers.update(test_headers)
         
         # Query parameters
-        params = self._replace_variables(request_config.get('params', {}), local_uuid)
+        params = self._replace_variables(request_config.get('query_params', {}), local_uuid)
         
         # Body da requisição
         json_body = None
