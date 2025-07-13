@@ -11,6 +11,8 @@ from urllib.parse import urljoin
 from deepdiff import DeepDiff
 import html
 
+from deepdiff.helper import SetOrdered
+
 
 class TestResult:
     """Resultado de um teste individual"""
@@ -555,7 +557,7 @@ class APIComparator:
         try:
             # Se response_data é um dict (JSON), formatá-lo
             if isinstance(result.response_data, dict) and format_json:
-                response_text = json.dumps(result.response_data, indent=2, ensure_ascii=False)
+                response_text = json.dumps(self._make_serializable(result.response_data), indent=2, ensure_ascii=False)
             else:
                 response_text = str(result.response_data)
             
@@ -572,7 +574,16 @@ class APIComparator:
             print(f"      Erro ao formatar response: {e}")
         
         print()  # Linha em branco
-    
+
+    def _make_serializable(self, obj):
+        if isinstance(obj, SetOrdered):
+            return list(obj)
+        elif isinstance(obj, dict):
+            return {k: self._make_serializable(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [self._make_serializable(item) for item in obj]
+        return obj
+
     def _generate_report(self):
         """Gera relatório dos testes"""
         report_config = self.config.get('report', {})
@@ -701,7 +712,7 @@ class APIComparator:
             results_data['comparisons'].append(comparison_result)
         
         with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(results_data, f, indent=2, ensure_ascii=False)
+            json.dump(self._make_serializable(results_data), f, indent=2, ensure_ascii=False)
     
     def _generate_html_comparison_report_simple(self, filename: str):
         """Gera relatório HTML com diferenças visuais detalhadas entre endpoints"""
@@ -1320,6 +1331,7 @@ def main():
         print("\n\n⚠️  Tests interrupted by user")
     except Exception as e:
         print(f"\n❌ Error during test execution: {e}")
+        raise e
     finally:
         comparator.cleanup()
 
