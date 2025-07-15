@@ -981,15 +981,225 @@ class APIComparator:
         
         /* Print styles */
         @media print {
+            @page {
+                size: A4;
+                margin: 15mm;
+            }
+            
             body {
                 background-color: white;
+                color: #000;
+                font-size: 10pt;
+                line-height: 1.4;
+                padding: 0;
+                margin: 0;
             }
+            
+            .main-container {
+                max-width: 100%;
+                margin: 0;
+            }
+            
+            h1 {
+                font-size: 20pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+            }
+            
+            h2 {
+                font-size: 14pt;
+                margin-top: 15pt;
+                margin-bottom: 10pt;
+                page-break-after: avoid;
+                page-break-inside: avoid;
+                border-bottom: 1pt solid #333;
+            }
+            
+            h3 {
+                font-size: 12pt;
+                margin-top: 10pt;
+                margin-bottom: 5pt;
+                page-break-after: avoid;
+            }
+            
+            /* Evitar quebras de página ruins */
             .comparison-container {
-                break-inside: avoid;
+                page-break-inside: avoid;
+                display: flex !important;
+                gap: 10pt;
+                margin-bottom: 15pt;
             }
+            
             .endpoint-container {
                 box-shadow: none;
-                border: 1px solid #000;
+                border: 1pt solid #333;
+                padding: 8pt;
+                margin-bottom: 0;
+                page-break-inside: avoid;
+                background-color: white;
+                min-width: auto;
+                width: 48%;
+                flex: 1;
+            }
+            
+            /* Status badges em preto e branco */
+            .status-badge {
+                border: 1pt solid #333;
+                background-color: #f0f0f0 !important;
+                color: #000 !important;
+                font-size: 9pt;
+                padding: 2pt 6pt;
+            }
+            
+            .status-2xx {
+                border-style: solid;
+            }
+            
+            .status-4xx, .status-5xx {
+                border-style: dashed;
+                font-weight: bold;
+            }
+            
+            /* Payloads e diffs */
+            .payload {
+                border: 1pt solid #666;
+                background-color: #fafafa !important;
+                font-size: 7pt;
+                line-height: 1.2;
+                padding: 4pt;
+                max-height: none;
+                overflow: visible;
+                page-break-inside: auto;
+            }
+            
+            /* Cores de diff em tons de cinza */
+            .diff-removed {
+                background-color: #f0f0f0 !important;
+                border-left: 3pt solid #666 !important;
+                color: #000 !important;
+                text-decoration: line-through;
+            }
+            
+            .diff-added {
+                background-color: #e8e8e8 !important;
+                border-left: 3pt solid #333 !important;
+                color: #000 !important;
+                font-weight: bold;
+            }
+            
+            .diff-modified {
+                background-color: #f5f5f5 !important;
+                border-left: 3pt dotted #666 !important;
+                color: #000 !important;
+            }
+            
+            .diff-unchanged {
+                color: #333 !important;
+            }
+            
+            .char-removed {
+                background-color: #d0d0d0 !important;
+                text-decoration: line-through !important;
+            }
+            
+            .char-added {
+                background-color: #c0c0c0 !important;
+                font-weight: bold !important;
+            }
+            
+            .char-modified {
+                background-color: #e0e0e0 !important;
+                font-weight: bold !important;
+            }
+            
+            /* Request details */
+            .request-details {
+                background-color: #f8f8f8 !important;
+                border: 1pt solid #666;
+                font-size: 6pt;
+                padding: 3pt;
+                margin-bottom: 4pt;
+                page-break-inside: avoid;
+            }
+            
+            .request-details code {
+                background-color: #e8e8e8 !important;
+                font-size: 6pt;
+                padding: 0.5pt 1pt;
+            }
+            
+            /* Banners de resultado */
+            .result-banner {
+                border: 2pt solid #333;
+                background-color: #f0f0f0 !important;
+                color: #000 !important;
+                font-size: 11pt;
+                font-weight: bold;
+                padding: 8pt;
+                margin: 10pt 0;
+                page-break-inside: avoid;
+                page-break-after: avoid;
+            }
+            
+            .result-success {
+                border-style: solid;
+            }
+            
+            .result-failure {
+                border-style: double;
+                background-color: #e0e0e0 !important;
+            }
+            
+            /* Legenda */
+            .legend {
+                border: 1pt solid #666;
+                padding: 8pt;
+                margin-bottom: 15pt;
+                page-break-inside: avoid;
+                background-color: #fafafa;
+                font-size: 9pt;
+            }
+            
+            .legend-item {
+                margin-right: 15pt;
+            }
+            
+            .legend-color {
+                border: 1pt solid #333 !important;
+                width: 12pt;
+                height: 12pt;
+                display: inline-block;
+                vertical-align: middle;
+            }
+            
+            /* Remover elementos desnecessários na impressão */
+            .legend-color:nth-child(1) {
+                background-color: #f0f0f0 !important;
+            }
+            
+            .legend-color:nth-child(2) {
+                background-color: #e0e0e0 !important;
+            }
+            
+            .legend-color:nth-child(3) {
+                background-color: #d0d0d0 !important;
+            }
+            
+            /* Garantir que o texto seja sempre legível */
+            * {
+                color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            /* Evitar quebras ruins em elementos importantes */
+            h1, h2, h3, .result-banner, .legend {
+                page-break-after: avoid;
+            }
+            
+            /* Forçar nova página antes de cada comparação principal */
+            h2:not(:first-of-type) {
+                page-break-before: auto;
             }
         }
     </style>
